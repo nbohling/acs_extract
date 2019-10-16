@@ -1,0 +1,6 @@
+if [[ ! -e build/jar/ACSextract.jar ]]
+then
+  ant compile jar
+fi
+
+java -jar ./build/jar/ACSextract.jar $@

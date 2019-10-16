@@ -1,0 +1,5 @@
+# Ignore any classes and test content
+*.class
+.pants.d/*
+build/*
+logs/*
