@@ -1,0 +1,45 @@
+PROC 1 DATACLAS
+
+FILTLIST ADMINS   INCLUDE('BOB','LARRY','MOE')
+FILTLIST CICSJOBS INCLUDE(CICS*,'CISPECL')
+
+/* DATA CLASSES */
+/* FLATSM  - flat files, small, < 50mb */
+/* FLATBIG - flat files, big > 50mb    */
+/* LIBS    - PDS, PDSE                 */
+/* VSAM    - VSAM files                */
+/* CICSVS  - VSAM files for CICS       */
+/* TEMPS   - temporary                 */
+/* JACKS   - jacks testing DC          */
+/* WRONGDC - invalid combination       */
+
+IF &DSTYPE = 'TEMP' THEN SET &DATACLAS = 'TEMPS'
+
+IF &JOB = &CICSJOBS THEN DO
+   IF &DSORG = 'VS' THEN SET &DATACLAS = 'CICSVS'
+   IF &DSN(2) = 'JKTEST' THEN SET &DATACLAS = 'JACKS'
+   ELSE SET &DATACLAS = 'WRONGDC‘
+   END
+ELSE DO
+   IF &DSORG = 'PS' THEN DO
+      IF &DSTYPE = 'TEMP' THEN SET &DATACLAS = 'TEMP'
+      IF &SIZE > 50MB THEN SET &DATACLAS = 'FLATSM'
+      ELSE SET &DATACLAS = 'FLATBIG'
+   END
+
+   IF &DSORG = 'PO' THEN SET &DATACLAS = 'LIBS'
+
+   IF &USER = &ADMINS THEN DO
+      SET &DATACLAS = 'ADMIN'
+      EXIT
+   END
+
+   IF &DSORG = 'VS' THEN DO
+      SET &DATACLAS = 'VSAM'
+      IF &DSTYPE = 'TEMP' THEN SET &DATACLAS = 'TEMP'
+      END
+
+   IF &JOB = 'JKTEST' THEN SET &DATACLAS = 'JACKS'
+   IF &DATACLAS = '' THEN SET &DATACLAS = 'WRONGDC'
+END
+END

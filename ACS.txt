@@ -1,0 +1,43 @@
+PROC STORCLAS
+
+/******************************************************************************************/
+/* THIS IS THE PRODUCTION SELECTION SPECIFICATION FOR SETTING STORCLAS                    */
+/* THIS IS THE DEMO ACS ROUTINE FROM THE IBM Z/OS DFSMSDFP STORAGE ADMINISTRATION MANUAL  */
+/******************************************************************************************/
+
+FILTLIST DBVOLS INCLUDE(IMS*,DB2*)                                /* ALL DATABASE VOLUMES */
+                EXCLUDE('IMS053','DB2007')
+
+FILTLIST DBJOBS INCLUDE(IMS*,PROD*,ACCT*)                           /* ALL DATA BASE JOBS */
+
+FILTLIST VALID_UNITS
+INCLUDE('3330','3340','3350','3375','3380','3390','SYSDA','')      /* VALID UNITS FOR SMS */
+
+IF &UNIT ^= &VALID_UNITS OR &UNIT = 'INVALID'
+
+   THEN DO
+           SET &STORCLAS = ''
+           WRITE 'INVALID UNIT TYPE FOR SMS ALLOCATION'
+           EXIT
+        END
+
+ELSE
+
+SELECT
+
+       WHEN (&DSN = SYS1.**)                                               /* SYSTEM DATA */
+            SET &STORCLAS = 'SYSTEM'
+
+       WHEN ((&ALLVOL = &DBVOLS) && (&JOB = &DBJOBS))                    /* DATABASE DATA */
+            SET &STORCLAS = 'DBPOOL'
+
+       WHEN ((&DSN(3) = 'CLEAR') | (&ANYVOL ^= TSO*))                     /* NON-SMS DATA */
+            SET &STORCLAS = ''
+
+       WHEN (&DEF_STORCLAS ¬= '')                                    /* IF DEFAULTS EXIST */
+            SET &STORCLAS = &DEF_STORCLAS
+
+       OTHERWISE SET &STORCLAS = 'COMMON'                               /* ALL OTHER DATA */
+
+END                                                                  /* END STORCLAS PROC */
+END

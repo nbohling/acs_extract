@@ -1,0 +1,44 @@
+
+
+ACS rule - list of conditions
+ACS condition - list of pairs.. (VAR1 = VALUE1) AND (VAR2 = VAL2)
+ACS pair - VAR = VALUE
+
+
+IF %A = 'B' AND %C = 'D'
+   IF %E = 'F' OR %G = 'H'
+      SET %SC = 'TEST'
+   END
+END
+
+ACSpair = %A=B, %C=D, %E=F, %G=H
+
+ACScondition = set of pairs that must be true together (AND group)
+
+ACSrule = condition(s) and SET
+
+
+Overall:
+   Creates new condition
+   Finds pair and adds it
+   If AND then parse next condition and merge them
+   If OR then parse next condition and add it
+
+Resulting ACScondition list
+At first IF
+   Condition: Pair(A=B), Pair(C=D)
+
+Second IF
+   Condition: Pair(E=F)
+   Condition: Pair(G=H)
+
+Resulting stack:
+   1: Condition: PAB, PCD
+   2: Condition list: Cond PEF, Cond PGH
+
+Resulting flattened rules:
+   1: Pair(A=B), Pair(C=D), Pair(E=F)
+   2: Pair(A=B), Pair(C=D), Pair(G=H)
+
+
+Additional conditions added:
